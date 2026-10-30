@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>餐盤日記</title>
-<meta name="description" content="記錄每餐熱量、三大營養素與喝水量">
-<meta name="theme-color" content="#f3f5f0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121614" media="(prefers-color-scheme: dark)">
+<meta name="description" content="記錄每餐熱量、三大營養素、喝水、體重與食物照片">
+<meta name="theme-color" content="#f2f2f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,159 +15,174 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-/* Layout: phone-first app shell — date bar on top, scrolling view in the middle, tab bar + add button pinned to the bottom */
+/* Layout: grouped-list phone app — large title, one big number per screen, inset white groups on a grey ground, tab bar at the bottom */
 :root {
-  --bg: #f3f5f0;
+  --bg: #f2f2f4;
   --surface: #ffffff;
-  --fg: #1b231e;
-  --muted: #66716a;
-  --line: #dde3dc;
-  --accent: #2f7a4d;
-  --accent-soft: #e2efe6;
-  --on-accent: #ffffff;
-  --over: #c8462c;
-  --protein: #3d6fb6;
-  --carbs: #d39a1c;
-  --fat: #c25b8a;
-  --water: #3a9bb8;
-  --scrim: rgba(20, 28, 24, .35);
-  --font-num: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
-  --font-body: -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
-  --radius: 16px;
-  --tabbar: 64px;
+  --fg: #111113;
+  --muted: #8a8a8f;
+  --line: #e6e6ea;
+  --fill: #ececf0;
+  --over: #d63a2a;
+  --protein: #4f6bed;
+  --carbs: #e0a32e;
+  --fat: #d0587e;
+  --water: #3a9bd0;
+  --scrim: rgba(0, 0, 0, .3);
+  --font: -apple-system, "SF Pro Text", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-num: -apple-system, "SF Pro Display", system-ui, sans-serif;
+  --radius: 14px;
+  --tabbar: 58px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg: #121614; --surface: #1b211e; --fg: #e8eee9; --muted: #98a39c; --line: #2c3530;
-  --accent: #6cc28f; --accent-soft: #20352a; --on-accent: #0f1a14; --over: #ef7a5f;
-  --protein: #7ea6e6; --carbs: #e8bb54; --fat: #e488b2; --water: #6cc6e0; --scrim: rgba(0, 0, 0, .55);
+  --bg: #000000; --surface: #1c1c1e; --fg: #f5f5f7; --muted: #8e8e93; --line: #2c2c2e; --fill: #2c2c2e;
+  --over: #ff6b5a; --protein: #7b93ff; --carbs: #f0bd55; --fat: #f07fa4; --water: #64b8e8; --scrim: rgba(0, 0, 0, .6);
   color-scheme: dark;
 } }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
-html, body { margin: 0; height: 100%; }
-body {
-  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
-  -webkit-text-size-adjust: 100%; overscroll-behavior-y: none;
-}
-button, input, select { font: inherit; color: inherit; }
-button { cursor: pointer; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.muted { color: var(--muted); }
 
-/* top bar */
-.topbar { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); }
-.topbar .inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 52px; gap: 12px; }
-.topbar h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
-.datenav { display: flex; align-items: center; gap: 2px; }
-.datenav button { border: 0; background: transparent; width: 36px; height: 36px; border-radius: 99px; font-size: 22px; line-height: 1; color: var(--accent); }
-.datenav button:disabled { color: var(--line); }
-.datenav .label { min-width: 84px; text-align: center; font-weight: 600; font-size: 15px; line-height: 1.15; }
-.datenav .label small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+/* header */
+.top { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); }
+.top .inner { max-width: 600px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-block: 10px 8px; }
+.top h1 { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.top .date { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.datenav { display: flex; gap: 4px; padding-bottom: 2px; }
+.datenav button { width: 34px; height: 34px; border-radius: 99px; background: var(--fill); font-size: 18px; line-height: 1; }
+.datenav button:disabled { opacity: .3; }
 
-main { max-width: 640px; margin: 0 auto; padding-top: 4px; padding-bottom: calc(var(--tabbar) + 88px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 16px; }
-.view { display: grid; gap: 16px; }
-h2 { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin: 4px 0 0; font-weight: 500; }
+main { max-width: 600px; margin: 0 auto; padding-top: 6px; padding-bottom: calc(var(--tabbar) + 96px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 22px; }
+.view { display: grid; gap: 22px; }
+.sec { display: grid; gap: 8px; }
+.sec > h2 { margin: 0; padding-inline: 4px; font-size: 13px; font-weight: 500; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; }
+.sec > h2 button { font-size: 13px; color: var(--fg); font-weight: 500; }
+.group { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+.row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 16px; }
+.group > .row + .row, .group > ul > li + li { border-top: 1px solid var(--line); }
+.row .grow { flex: 1; min-width: 0; }
 
-/* summary */
-.summary { background: var(--surface); border-radius: var(--radius); padding: 18px; display: grid; grid-template-columns: 132px 1fr; gap: 18px; align-items: center; }
-.ring { position: relative; width: 132px; height: 132px; }
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.ring .big { font-size: 32px; font-weight: 700; line-height: 1; }
-.ring .cap { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.macros { display: grid; gap: 10px; min-width: 0; }
-.macro .row { display: flex; justify-content: space-between; font-size: 13px; gap: 8px; }
-.bar { height: 7px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 4px; }
-.bar i { display: block; height: 100%; border-radius: 99px; transition: width .3s; }
-@media (max-width: 360px) { .summary { grid-template-columns: 1fr; justify-items: center; } .macros { width: 100%; } }
+/* hero */
+.hero { padding: 18px 16px 16px; display: grid; gap: 14px; }
+.hero .big { font-size: 52px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.hero .big small { font-size: 17px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 4px; }
+.hero .sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+.hero .sub b { color: var(--fg); font-weight: 600; }
+.hero .sub b.over { color: var(--over); }
+.track { height: 6px; border-radius: 99px; background: var(--fill); overflow: hidden; }
+.track i { display: block; height: 100%; border-radius: 99px; background: var(--fg); transition: width .35s ease; }
+.track i.over { background: var(--over); }
+.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.macro .lbl { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.macro .lbl::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.macro .val { font-size: 17px; font-weight: 600; margin: 2px 0 6px; }
+.macro .val small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.macro .track { height: 4px; }
+.macro .track i { background: var(--c); }
 
-.water { background: var(--surface); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.water .cups { display: flex; gap: 6px; }
-.cup { width: 24px; height: 28px; border: 1.5px solid var(--water); border-radius: 3px 3px 8px 8px; background: transparent; padding: 0; }
-.cup.on { background: var(--water); }
-.water .lbl { font-size: 13px; color: var(--muted); }
+.dots { display: flex; gap: 5px; }
+#waterTxt { white-space: nowrap; }
+.dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--water); }
+.dot.on { background: var(--water); }
+.wt { width: 86px; text-align: right; border: 0; background: var(--fill); border-radius: 8px; padding: 6px 8px; font-size: 16px; }
 
 /* meals */
-.meal { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
-.meal-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; font-weight: 600; }
-.meal-head .k { color: var(--muted); font-size: 13px; font-weight: 400; }
-.meal-head button { border: 0; background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 2px 12px; font-size: 13px; font-weight: 500; }
 .meal ul { list-style: none; margin: 0; padding: 0; }
-.meal li { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 9px 8px 9px 16px; border-top: 1px solid var(--line); }
-.meal li .name { min-width: 0; overflow-wrap: anywhere; }
-.meal li .sub { font-size: 12px; color: var(--muted); }
-.meal li button { border: 0; background: transparent; color: var(--muted); font-size: 20px; width: 36px; height: 36px; border-radius: 8px; }
+.mhead { display: flex; align-items: baseline; gap: 8px; padding: 12px 16px 4px; }
+.mhead .t { font-weight: 600; font-size: 17px; }
+.mhead .k { color: var(--muted); font-size: 14px; flex: 1; }
+.mhead .acts { display: flex; gap: 14px; font-size: 14px; }
+.mhead .acts button { color: var(--fg); font-weight: 500; }
+.mhead .acts button.copy { color: var(--muted); font-weight: 400; }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; width: 100%; text-align: left; }
+.meal li + li { border-top: 1px solid var(--line); margin-left: 16px; }
+.meal li + li .item { padding-left: 0; }
+.thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--fill); flex: none; }
+.item .n { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.item .n small { display: block; color: var(--muted); font-size: 12px; }
+.item .k { font-weight: 600; }
+.meal .none { padding: 2px 16px 12px; color: var(--muted); font-size: 14px; }
 
-/* trends */
-.card { background: var(--surface); border-radius: var(--radius); padding: 16px; }
-.card svg { width: 100%; height: auto; display: block; }
-.card svg text { fill: var(--muted); font-size: 17px; font-family: var(--font-body); }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.stat { background: var(--surface); border-radius: var(--radius); padding: 12px; }
-.stat .v { font-size: 22px; font-weight: 700; }
+/* trend */
+.chart { padding: 14px 12px 8px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart svg text { fill: var(--muted); font-size: 18px; font-family: var(--font-num); }
+.chart .empty { color: var(--muted); font-size: 14px; padding: 18px 4px; text-align: center; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); }
+.stat { padding: 14px 16px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat .v { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
 .stat .l { font-size: 12px; color: var(--muted); }
-.toplist { list-style: none; margin: 0; padding: 0; }
-.toplist li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
-.toplist li:first-child { border-top: 0; }
-.toplist .cnt { color: var(--muted); font-size: 13px; }
 
 /* settings */
-.field { display: grid; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
-.field input { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 10px; font-size: 16px; width: 100%; min-width: 0; }
-.grid4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.btn { border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 600; font-size: 15px; }
-.btn.primary { background: var(--accent); color: var(--on-accent); }
-.btn.soft { background: var(--accent-soft); color: var(--accent); }
-.btn.danger { background: transparent; color: var(--over); border: 1px solid var(--line); }
-.btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
-.note { font-size: 13px; color: var(--muted); margin: 0; }
+.row input.inline { width: 90px; text-align: right; border: 0; background: transparent; font-size: 16px; color: var(--muted); }
+.row .chev { color: var(--muted); }
+.linkbtn { width: 100%; text-align: left; }
+.danger { color: var(--over); }
+.note { font-size: 13px; color: var(--muted); padding-inline: 4px; margin: 0; }
 
-.empty { color: var(--muted); font-size: 13px; padding: 4px 16px 12px; }
+/* tab bar + fab */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabbar .inner { max-width: 600px; margin: 0 auto; height: var(--tabbar); display: grid; grid-template-columns: repeat(3, 1fr); }
+.tabbar button { color: var(--muted); font-size: 10px; display: grid; justify-items: center; align-content: center; gap: 3px; }
+.tabbar svg { width: 24px; height: 24px; }
+.tabbar button[aria-current="page"] { color: var(--fg); }
+.fab { position: fixed; z-index: 7; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(var(--tabbar) + 18px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--fg); color: var(--bg); font-size: 30px; line-height: 1; box-shadow: 0 6px 20px rgba(0, 0, 0, .2); }
 
-/* bottom bar */
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.tabbar .inner { max-width: 640px; margin: 0 auto; height: var(--tabbar); display: grid; grid-template-columns: repeat(3, 1fr); }
-.tabbar button { border: 0; background: transparent; color: var(--muted); font-size: 11px; display: grid; justify-items: center; align-content: center; gap: 2px; }
-.tabbar button svg { width: 24px; height: 24px; }
-.tabbar button[aria-current="page"] { color: var(--accent); font-weight: 600; }
-.fab { position: fixed; z-index: 7; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(var(--tabbar) + 16px + env(safe-area-inset-bottom, 0px)); width: 60px; height: 60px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent); font-size: 32px; line-height: 1; box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
-
-/* add sheet */
-dialog.sheet { border: 0; padding: 0; margin: auto 0 0; width: 100%; max-width: 100%; max-height: 92dvh; background: var(--surface); color: var(--fg); border-radius: 20px 20px 0 0; }
-@media (min-width: 680px) { dialog.sheet { max-width: 640px; margin: auto; border-radius: 20px; } }
+/* sheets */
+dialog.sheet { border: 0; padding: 0; margin: auto 0 0; width: 100%; max-width: 100%; max-height: 94dvh; background: var(--bg); color: var(--fg); border-radius: 18px 18px 0 0; }
+@media (min-width: 640px) { dialog.sheet { max-width: 600px; margin: auto; border-radius: 18px; } }
 dialog.sheet::backdrop { background: var(--scrim); }
-.sheet form { display: grid; gap: 12px; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.sheet .grab { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto; }
-.sheet .head { display: flex; justify-content: space-between; align-items: center; }
-.sheet .head h3 { margin: 0; font-size: 17px; }
-.sheet .head button { border: 0; background: transparent; color: var(--accent); font-size: 15px; padding: 6px; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { border: 1px solid var(--line); background: transparent; border-radius: 99px; padding: 5px 13px; font-size: 14px; }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.search { border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 10px 12px; font-size: 16px; width: 100%; }
-.sugg { list-style: none; margin: 0; padding: 0; max-height: 34dvh; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
-.sugg li { display: grid; grid-template-columns: 1fr auto; align-items: center; border-top: 1px solid var(--line); }
-.sugg li:first-child { border-top: 0; }
-.sugg li.sec { display: block; padding: 6px 12px; font-size: 11px; color: var(--muted); letter-spacing: .06em; background: var(--bg); }
-.sugg .pick { border: 0; background: transparent; text-align: left; padding: 9px 12px; min-width: 0; }
+.sheet form { display: grid; gap: 14px; padding-block: 10px calc(18px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sheet .bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 40px; }
+.sheet .bar h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.sheet .bar .l { justify-self: start; color: var(--muted); }
+.sheet .bar .r { justify-self: end; font-weight: 600; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--fill); border-radius: 10px; padding: 2px; }
+.seg button { padding: 6px 0; border-radius: 8px; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--surface); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.search { width: 100%; border: 0; background: var(--fill); border-radius: 10px; padding: 10px 12px; font-size: 17px; }
+.sugg { list-style: none; margin: 0; padding: 0; max-height: 30dvh; overflow-y: auto; }
+.sugg li.h { padding: 8px 16px 4px; font-size: 12px; color: var(--muted); }
+.sugg li.it { display: flex; align-items: center; }
+.sugg li.it + li.it { border-top: 1px solid var(--line); margin-left: 16px; }
+.sugg li.it + li.it .pick { padding-left: 0; }
+.sugg .pick { flex: 1; text-align: left; padding: 9px 0 9px 16px; min-width: 0; }
 .sugg .pick small { display: block; color: var(--muted); font-size: 12px; }
-.sugg .star { border: 0; background: transparent; font-size: 20px; width: 44px; height: 44px; color: var(--muted); }
-.sugg .star[aria-pressed="true"] { color: var(--carbs); }
-.serv { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.sugg .save { width: 44px; height: 44px; font-size: 22px; color: var(--muted); }
+.sugg .save[aria-pressed="true"] { color: var(--fg); }
+.fields .row { min-height: 44px; padding-block: 6px; }
+.fields .row label { flex: 1; }
+.fields .row input { width: 120px; text-align: right; border: 0; background: transparent; font-size: 17px; }
+.fields .row input[type="date"] { width: auto; }
+.photo { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+.photo img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; }
+.photo .acts { display: flex; gap: 16px; flex-wrap: wrap; font-size: 15px; }
+.photo label { cursor: pointer; font-weight: 500; }
+.photo .rm { color: var(--over); }
+.btn { width: 100%; border-radius: 12px; padding: 13px; font-size: 17px; font-weight: 600; background: var(--fg); color: var(--bg); }
+.btn.plain { background: var(--surface); color: var(--over); font-weight: 500; }
+.confirm { display: grid; gap: 8px; }
 
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tabbar) + 90px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 16px; border-radius: 99px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
-@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tabbar) + 92px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); display: flex; gap: 14px; align-items: center; }
+.toast button { color: var(--bg); font-weight: 600; text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .track i { transition: none; } }
 </style>
 </head>
 <body>
-<div class="topbar gutter">
+<div class="top gutter">
   <div class="inner">
-    <h1 id="viewTitle">今天</h1>
+    <div><h1 id="title">今天</h1><div class="date num" id="subtitle"></div></div>
     <div class="datenav" id="datenav">
       <button id="prev" aria-label="前一天">‹</button>
-      <div class="label" id="dateLabel"></div>
       <button id="next" aria-label="後一天">›</button>
     </div>
   </div>
@@ -176,58 +191,68 @@ dialog.sheet::backdrop { background: var(--scrim); }
 <main class="gutter">
   <!-- 今天 -->
   <div class="view" id="v-today">
-    <div class="summary">
-      <div class="ring">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="11"></circle>
-          <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="0 999"></circle>
-        </svg>
-        <div class="center"><div class="big num" id="kcalLeft">0</div><div class="cap" id="kcalCap">大卡 剩餘</div></div>
+    <div class="group hero">
+      <div>
+        <div class="big num" id="eaten">0<small>kcal</small></div>
+        <div class="sub" id="remain"></div>
       </div>
+      <div class="track"><i id="kcalBar"></i></div>
       <div class="macros">
-        <div class="macro"><div class="row"><span>蛋白質</span><span class="num" id="pTxt"></span></div><div class="bar"><i id="pBar" style="background:var(--protein)"></i></div></div>
-        <div class="macro"><div class="row"><span>碳水</span><span class="num" id="cTxt"></span></div><div class="bar"><i id="cBar" style="background:var(--carbs)"></i></div></div>
-        <div class="macro"><div class="row"><span>脂肪</span><span class="num" id="fTxt"></span></div><div class="bar"><i id="fBar" style="background:var(--fat)"></i></div></div>
+        <div class="macro" style="--c:var(--protein)"><div class="lbl">蛋白質</div><div class="val num" id="pVal"></div><div class="track"><i id="pBar"></i></div></div>
+        <div class="macro" style="--c:var(--carbs)"><div class="lbl">碳水</div><div class="val num" id="cVal"></div><div class="track"><i id="cBar"></i></div></div>
+        <div class="macro" style="--c:var(--fat)"><div class="lbl">脂肪</div><div class="val num" id="fVal"></div><div class="track"><i id="fBar"></i></div></div>
       </div>
     </div>
-    <div class="water"><span>喝水 <span class="lbl num" id="waterTxt"></span></span><span class="cups" id="cups"></span></div>
-    <div id="meals" class="view"></div>
+
+    <div class="group">
+      <div class="row"><span class="grow">喝水 <span class="muted num" id="waterTxt"></span></span><span class="dots" id="dots"></span></div>
+      <div class="row"><label class="grow" for="weightIn">體重 <span class="muted">kg</span></label><input class="wt num" id="weightIn" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="—"></div>
+    </div>
+
+    <div class="view" id="meals"></div>
   </div>
 
   <!-- 趨勢 -->
   <div class="view" id="v-trend" hidden>
-    <h2>最近 7 天熱量</h2>
-    <div class="card" id="week"></div>
-    <div class="stats">
-      <div class="stat"><div class="v num" id="avgK"></div><div class="l">7 天平均 kcal</div></div>
-      <div class="stat"><div class="v num" id="avgP"></div><div class="l">平均蛋白質 g</div></div>
-      <div class="stat"><div class="v num" id="streak"></div><div class="l">連續記錄天數</div></div>
+    <div class="group stats">
+      <div class="stat"><div class="v num" id="avgK">–</div><div class="l">7 天平均 kcal</div></div>
+      <div class="stat"><div class="v num" id="avgP">–</div><div class="l">平均蛋白質 g</div></div>
+      <div class="stat"><div class="v num" id="streak">0</div><div class="l">連續記錄天</div></div>
     </div>
-    <h2>最常吃的食物</h2>
-    <div class="card"><ul class="toplist" id="toplist"></ul></div>
+    <div class="sec"><h2>熱量 · 7 天</h2><div class="group chart" id="kcalChart"></div></div>
+    <div class="sec"><h2><span>體重 · 30 天</span><span class="num" id="wDelta"></span></h2><div class="group chart" id="weightChart"></div></div>
+    <div class="sec"><h2>最常吃</h2><div class="group"><ul class="sugg" id="toplist" style="max-height:none"></ul></div></div>
   </div>
 
   <!-- 設定 -->
   <div class="view" id="v-settings" hidden>
-    <h2>每日目標</h2>
-    <div class="card grid4">
-      <label class="field">熱量 kcal<input id="gKcal" type="number" inputmode="numeric" min="0"></label>
-      <label class="field">蛋白質 g<input id="gP" type="number" inputmode="numeric" min="0"></label>
-      <label class="field">碳水 g<input id="gC" type="number" inputmode="numeric" min="0"></label>
-      <label class="field">脂肪 g<input id="gF" type="number" inputmode="numeric" min="0"></label>
-    </div>
-    <h2>備份</h2>
-    <div class="card view">
-      <p class="note">紀錄只存在這支手機上。換手機或清除 Safari 資料前，先匯出備份檔，之後再匯入就能還原。</p>
-      <div class="btnrow">
-        <button class="btn soft" id="exportBtn">匯出備份</button>
-        <label class="btn soft" for="importFile" style="cursor:pointer">匯入備份</label>
-        <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <div class="sec">
+      <h2>每日目標</h2>
+      <div class="group">
+        <label class="row"><span class="grow">熱量</span><input class="inline num" id="gKcal" type="number" inputmode="numeric" min="0"><span class="muted">kcal</span></label>
+        <label class="row"><span class="grow">蛋白質</span><input class="inline num" id="gP" type="number" inputmode="numeric" min="0"><span class="muted">g</span></label>
+        <label class="row"><span class="grow">碳水</span><input class="inline num" id="gC" type="number" inputmode="numeric" min="0"><span class="muted">g</span></label>
+        <label class="row"><span class="grow">脂肪</span><input class="inline num" id="gF" type="number" inputmode="numeric" min="0"><span class="muted">g</span></label>
       </div>
+    </div>
+    <div class="sec">
+      <h2><span>我的食物</span><button id="newFood">新增</button></h2>
+      <div class="group"><ul class="sugg" id="libList" style="max-height:none"></ul></div>
+      <p class="note">新增時會優先出現在「常用」。在新增畫面點食物旁的 ＋ 也能存進來。</p>
+    </div>
+    <div class="sec">
+      <h2>備份</h2>
+      <div class="group">
+        <button class="row linkbtn" id="exportBtn"><span class="grow">匯出備份</span><span class="chev">›</span></button>
+        <label class="row" for="importFile" style="cursor:pointer"><span class="grow">匯入備份</span><span class="chev">›</span></label>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
       <p class="note num" id="statsNote"></p>
     </div>
-    <h2>加到主畫面</h2>
-    <div class="card"><p class="note">iPhone：用 Safari 打開，點下方「分享」→「加入主畫面」。Android：用 Chrome 打開，點右上「⋮」→「安裝應用程式」或「加到主畫面」。</p></div>
+    <div class="sec">
+      <h2>加到主畫面</h2>
+      <p class="note">iPhone：用 Safari 打開，點「分享」→「加入主畫面」。Android：用 Chrome 打開，點「⋮」→「安裝應用程式」。紀錄只存在這支手機，換手機前先匯出備份。</p>
+    </div>
   </div>
 </main>
 
@@ -235,38 +260,64 @@ dialog.sheet::backdrop { background: var(--scrim); }
 
 <nav class="tabbar gutter" aria-label="主要頁面">
   <div class="inner">
-    <button data-view="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle></svg>今天</button>
-    <button data-view="trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19V12M10 19V7M15 19v-9M20 19V5"></path></svg>趨勢</button>
-    <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>設定</button>
+    <button data-view="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle></svg>今天</button>
+    <button data-view="trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 19V12M10 19V7M15 19v-9M20 19V5"></path></svg>趨勢</button>
+    <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>設定</button>
   </div>
 </nav>
 
+<!-- 新增 / 編輯紀錄 -->
 <dialog class="sheet" id="sheet">
-  <form id="addForm" method="dialog" autocomplete="off">
-    <div class="grab"></div>
-    <div class="head"><h3>新增一筆</h3><button type="button" id="closeSheet">取消</button></div>
-    <div class="chips" id="mealChips"></div>
-    <input class="search" id="q" type="search" placeholder="搜尋食物，或直接輸入名稱" enterkeyhint="search">
-    <ul class="sugg" id="sugg"></ul>
-    <div class="serv">份量 <span class="chips" id="servChips"></span></div>
-    <div class="grid4">
-      <label class="field">熱量 kcal<input id="fKcal" type="number" inputmode="decimal" min="0" step="1" required></label>
-      <label class="field">蛋白質 g<input id="fP" type="number" inputmode="decimal" min="0" step="0.1"></label>
-      <label class="field">碳水 g<input id="fC" type="number" inputmode="decimal" min="0" step="0.1"></label>
-      <label class="field">脂肪 g<input id="fF" type="number" inputmode="decimal" min="0" step="0.1"></label>
+  <form id="entryForm" autocomplete="off">
+    <div class="bar"><button type="button" class="l" id="cancelEntry">取消</button><h3 id="sheetTitle">新增</h3><button type="submit" class="r">儲存</button></div>
+    <div class="seg" id="mealSeg"></div>
+    <input class="search" id="q" type="search" placeholder="食物名稱" enterkeyhint="done">
+    <div class="group" id="suggBox"><ul class="sugg" id="sugg"></ul></div>
+    <div class="sec"><h2>份量</h2><div class="seg" id="servSeg"></div></div>
+    <div class="group fields">
+      <div class="row"><label for="fKcal">熱量</label><input class="num" id="fKcal" type="number" inputmode="decimal" min="0" step="1" required placeholder="0"><span class="muted">kcal</span></div>
+      <div class="row"><label for="fP">蛋白質</label><input class="num" id="fP" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+      <div class="row"><label for="fC">碳水</label><input class="num" id="fC" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+      <div class="row"><label for="fF">脂肪</label><input class="num" id="fF" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+      <div class="row" id="dateRow"><label for="fDate">日期</label><input id="fDate" type="date"></div>
     </div>
-    <button class="btn primary" type="submit" id="saveBtn">加入</button>
+    <div class="group photo">
+      <img id="photoPrev" alt="食物照片" hidden>
+      <div class="acts">
+        <label for="photoCam">拍照</label><input id="photoCam" type="file" accept="image/*" capture="environment" hidden>
+        <label for="photoPick">選照片</label><input id="photoPick" type="file" accept="image/*" hidden>
+        <button type="button" class="rm" id="photoRm" hidden>移除照片</button>
+      </div>
+    </div>
+    <div class="confirm" id="delBox" hidden>
+      <button type="button" class="btn plain" id="delEntry">刪除這筆</button>
+    </div>
   </form>
 </dialog>
 
-<div class="toast" id="toast" hidden></div>
+<!-- 我的食物：新增 / 編輯 -->
+<dialog class="sheet" id="foodSheet">
+  <form id="foodForm" autocomplete="off">
+    <div class="bar"><button type="button" class="l" id="cancelFood">取消</button><h3 id="foodTitle">新增食物</h3><button type="submit" class="r">儲存</button></div>
+    <input class="search" id="lName" placeholder="名稱，例：公司樓下雞胸便當" required>
+    <div class="group fields">
+      <div class="row"><label for="lKcal">熱量</label><input class="num" id="lKcal" type="number" inputmode="decimal" min="0" step="1" required placeholder="0"><span class="muted">kcal</span></div>
+      <div class="row"><label for="lP">蛋白質</label><input class="num" id="lP" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+      <div class="row"><label for="lC">碳水</label><input class="num" id="lC" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+      <div class="row"><label for="lF">脂肪</label><input class="num" id="lF" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0"><span class="muted">g</span></div>
+    </div>
+    <button type="button" class="btn plain" id="delFood" hidden>從我的食物移除</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button id="toastUndo" hidden>復原</button></div>
 
 <script>
 const MEALS = ["早餐", "午餐", "晚餐", "點心"];
 const WATER_GOAL = 8;
 const DEFAULT_GOALS = { kcal: 1800, p: 100, c: 200, f: 60 };
 const KEY = "plate-diary-v1";
-const SERVINGS = [0.5, 1, 1.5, 2];
+const SERVINGS = [0.5, 1, 1.5, 2, 3];
 
 /* 常見台灣食物，數值為一般份量的估計值 */
 const FOODS = [
@@ -289,19 +340,27 @@ const FOODS = [
 
 const $ = id => document.getElementById(id);
 const r1 = n => Math.round(n * 10) / 10;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const macros = o => ({ kcal: +o.kcal || 0, p: +o.p || 0, c: +o.c || 0, f: +o.f || 0 });
 
+/* ---------- 資料 ---------- */
 let state = load();
 let current = todayKey();
 let view = "today";
-let selMeal = guessMeal();
-let serving = 1;
-let base = null;            // the food the form was filled from, before the serving multiplier
 
 function load() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
-    return { days: raw.days || {}, goals: { ...DEFAULT_GOALS, ...(raw.goals || {}) }, favorites: raw.favorites || [] };
-  } catch { return { days: {}, goals: { ...DEFAULT_GOALS }, favorites: [] }; }
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch {}
+  const s = { days: raw.days || {}, goals: { ...DEFAULT_GOALS, ...(raw.goals || {}) }, weights: raw.weights || {}, library: raw.library || [] };
+  // 舊版的「常用」星號 → 轉成我的食物
+  if (raw.favorites?.length && !raw.library) {
+    for (const name of raw.favorites) {
+      const src = FOODS.find(f => f.name === name) || Object.values(s.days).flatMap(d => d.entries).reverse().find(e => e.name === name);
+      if (src) s.library.push({ id: uid(), name, ...macros(src) });
+    }
+  }
+  return s;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -315,35 +374,75 @@ function todayKey(d = new Date()) {
 function shift(key, n) { const d = new Date(key + "T12:00:00"); d.setDate(d.getDate() + n); return todayKey(d); }
 function guessMeal() { const h = new Date().getHours(); return h < 10 ? "早餐" : h < 14 ? "午餐" : h < 17 ? "點心" : "晚餐"; }
 function day(key) { return state.days[key] || { entries: [], water: 0 }; }
+function setDay(key, d) { if (!d.entries.length && !d.water) delete state.days[key]; else state.days[key] = d; }
 function totals(key) {
   return day(key).entries.reduce((t, e) => ({ kcal: t.kcal + (+e.kcal || 0), p: t.p + (+e.p || 0), c: t.c + (+e.c || 0), f: t.f + (+e.f || 0) }), { kcal: 0, p: 0, c: 0, f: 0 });
 }
-function commitDay(key, d) { state.days[key] = d; save(); render(); }
+function relLabel(key) {
+  if (key === todayKey()) return "今天";
+  if (key === shift(todayKey(), -1)) return "昨天";
+  return "星期" + "日一二三四五六"[new Date(key + "T12:00:00").getDay()];
+}
+const md = key => `${+key.slice(5, 7)}月${+key.slice(8)}日`;
 
-/* 用過的食物：每個名稱取最近一次的數值，並計算次數 */
+/* 吃過的食物：每個名稱取最近一次的 1 份數值，並計算次數 */
 function history() {
   const map = new Map();
   Object.keys(state.days).sort().forEach(k => day(k).entries.forEach(e => {
-    const prev = map.get(e.name);
-    map.set(e.name, { name: e.name, kcal: e.kcal, p: e.p, c: e.c, f: e.f, count: (prev?.count || 0) + 1 });
+    const base = e.base || e;
+    map.set(e.name, { name: e.name, ...macros(base), count: (map.get(e.name)?.count || 0) + 1 });
   }));
   return map;
 }
 function frequent() {
-  const h = history();
-  const fav = state.favorites.map(n => h.get(n) || FOODS.find(f => f.name === n)).filter(Boolean);
-  const rest = [...h.values()].filter(f => f.count >= 2 && !state.favorites.includes(f.name)).sort((a, b) => b.count - a.count);
-  return [...fav, ...rest].slice(0, 12);
+  const h = history(), lib = state.library.map(f => ({ ...f, count: h.get(f.name)?.count || 0, mine: true }));
+  const names = new Set(lib.map(f => f.name));
+  const rest = [...h.values()].filter(f => f.count >= 2 && !names.has(f.name)).sort((a, b) => b.count - a.count);
+  return [...lib.sort((a, b) => b.count - a.count), ...rest].slice(0, 15);
 }
 
-/* ---------- render ---------- */
+/* ---------- 照片（存在手機的 IndexedDB） ---------- */
+const photoDB = new Promise(res => {
+  try {
+    const req = indexedDB.open("plate-diary", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("photos");
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => res(null);
+  } catch { res(null); }
+});
+async function idb(mode, fn) {
+  const db = await photoDB; if (!db) return null;
+  return new Promise((res, rej) => {
+    const tx = db.transaction("photos", mode), r = fn(tx.objectStore("photos"));
+    tx.oncomplete = () => res(r?.result ?? null); tx.onerror = () => rej(tx.error);
+  });
+}
+const putPhoto = (id, blob) => idb("readwrite", s => s.put(blob, id));
+const getPhoto = id => idb("readonly", s => s.get(id));
+const delPhoto = id => idb("readwrite", s => s.delete(id));
+const urlCache = new Map();
+async function photoURL(id) {
+  if (urlCache.has(id)) return urlCache.get(id);
+  const blob = await getPhoto(id).catch(() => null); if (!blob) return null;
+  const u = URL.createObjectURL(blob); urlCache.set(id, u); return u;
+}
+function dropURL(id) { if (urlCache.has(id)) { URL.revokeObjectURL(urlCache.get(id)); urlCache.delete(id); } }
+async function shrink(file) {
+  const img = await createImageBitmap(file).catch(() => null);
+  if (!img) return file;
+  const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
+  const cv = document.createElement("canvas"); cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+  cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+  return new Promise(res => cv.toBlob(b => res(b || file), "image/jpeg", 0.78));
+}
+
+/* ---------- 畫面 ---------- */
 function render() {
-  const wk = ["日", "一", "二", "三", "四", "五", "六"][new Date(current + "T12:00:00").getDay()];
-  const rel = current === todayKey() ? "今天" : current === shift(todayKey(), -1) ? "昨天" : `星期${wk}`;
-  $("dateLabel").innerHTML = `${+current.slice(5, 7)}/${+current.slice(8)}<small>${rel}</small>`;
+  $("title").textContent = { today: relLabel(current), trend: "趨勢", settings: "設定" }[view];
+  $("subtitle").textContent = view === "settings" ? "" : view === "trend" ? `到 ${md(current)}` : `${md(current)}${current === todayKey() ? "" : " · " + relLabel(current)}`;
+  if (view === "today" && current !== todayKey() && current !== shift(todayKey(), -1)) $("title").textContent = md(current);
   $("next").disabled = current >= todayKey();
-  $("viewTitle").textContent = { today: rel, trend: "趨勢", settings: "設定" }[view];
-  $("datenav").style.visibility = view === "settings" ? "hidden" : "";
+  $("datenav").hidden = view === "settings";
   $("fab").hidden = view !== "today";
   for (const v of ["today", "trend", "settings"]) $("v-" + v).hidden = v !== view;
   document.querySelectorAll(".tabbar button").forEach(b => {
@@ -355,196 +454,335 @@ function render() {
 }
 
 function renderToday() {
-  const t = totals(current), d = day(current), g = state.goals;
-  const left = Math.round(g.kcal - t.kcal), over = left < 0;
-  $("kcalLeft").textContent = Math.abs(left);
-  $("kcalLeft").style.color = over ? "var(--over)" : "";
-  $("kcalCap").innerHTML = `${over ? "大卡 超出" : "大卡 剩餘"}<br>已吃 ${Math.round(t.kcal)}`;
-  const C = 2 * Math.PI * 52, frac = Math.min(t.kcal / (g.kcal || 1), 1);
-  $("ringArc").setAttribute("stroke-dasharray", `${frac * C} ${C}`);
-  $("ringArc").setAttribute("stroke", over ? "var(--over)" : "var(--accent)");
+  const t = totals(current), d = day(current), g = state.goals, left = g.kcal - t.kcal;
+  $("eaten").innerHTML = `${fmt(t.kcal)}<small>kcal</small>`;
+  $("remain").innerHTML = left >= 0 ? `目標 ${fmt(g.kcal)} · 剩下 <b class="num">${fmt(left)}</b>` : `目標 ${fmt(g.kcal)} · 超出 <b class="num over">${fmt(-left)}</b>`;
+  $("kcalBar").style.width = Math.min(100, t.kcal / (g.kcal || 1) * 100) + "%";
+  $("kcalBar").classList.toggle("over", left < 0);
   for (const k of ["p", "c", "f"]) {
-    $(k + "Txt").textContent = `${r1(t[k])} / ${g[k]} g`;
-    $(k + "Bar").style.width = Math.min(100, (t[k] / (g[k] || 1)) * 100) + "%";
+    $(k + "Val").innerHTML = `${r1(t[k])}<small> / ${g[k]} g</small>`;
+    $(k + "Bar").style.width = Math.min(100, t[k] / (g[k] || 1) * 100) + "%";
   }
-
-  $("cups").innerHTML = "";
+  $("dots").innerHTML = "";
   for (let i = 0; i < WATER_GOAL; i++) {
     const b = document.createElement("button");
-    b.className = "cup" + (i < d.water ? " on" : "");
+    b.className = "dot" + (i < d.water ? " on" : "");
     b.setAttribute("aria-label", `喝了 ${i + 1} 杯`);
-    b.onclick = () => commitDay(current, { ...d, water: d.water === i + 1 ? i : i + 1 });
-    $("cups").appendChild(b);
+    b.onclick = () => { setDay(current, { ...day(current), water: d.water === i + 1 ? i : i + 1 }); save(); render(); };
+    $("dots").appendChild(b);
   }
   $("waterTxt").textContent = `${d.water * 250} ml`;
+  if (document.activeElement !== $("weightIn")) $("weightIn").value = state.weights[current] ?? "";
 
   const box = $("meals"); box.innerHTML = "";
+  const y = day(shift(current, -1));
   for (const m of MEALS) {
     const list = d.entries.filter(e => e.meal === m);
+    const sec = document.createElement("div"); sec.className = "group meal";
+    const head = document.createElement("div"); head.className = "mhead";
     const kcal = list.reduce((s, e) => s + (+e.kcal || 0), 0);
-    const card = document.createElement("div"); card.className = "meal";
-    const head = document.createElement("div"); head.className = "meal-head";
-    head.innerHTML = `<span>${m} <span class="k num">${Math.round(kcal)} kcal</span></span>`;
-    const add = document.createElement("button"); add.textContent = "+ 新增";
-    add.onclick = () => openSheet(m);
-    head.appendChild(add); card.appendChild(head);
+    head.innerHTML = `<span class="t">${m}</span><span class="k num">${list.length ? fmt(kcal) + " kcal" : ""}</span>`;
+    const acts = document.createElement("span"); acts.className = "acts";
+    const yList = y.entries.filter(e => e.meal === m);
+    if (!list.length && yList.length) {
+      const cp = document.createElement("button"); cp.className = "copy"; cp.textContent = "同昨天";
+      cp.setAttribute("aria-label", `複製昨天的${m}`);
+      cp.onclick = () => copyMeal(m, yList);
+      acts.appendChild(cp);
+    }
+    const add = document.createElement("button"); add.textContent = "＋"; add.setAttribute("aria-label", `新增${m}`);
+    add.onclick = () => openEntry({ meal: m });
+    acts.appendChild(add); head.appendChild(acts); sec.appendChild(head);
+    if (!list.length) { const p = document.createElement("div"); p.className = "none"; p.textContent = "尚未記錄"; sec.appendChild(p); }
     const ul = document.createElement("ul");
-    if (!list.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "還沒有紀錄"; card.appendChild(p); }
     for (const e of list) {
       const li = document.createElement("li");
-      const name = document.createElement("div"); name.className = "name"; name.textContent = e.name;
-      const sub = document.createElement("div"); sub.className = "sub num";
-      sub.textContent = `P ${r1(+e.p || 0)} · C ${r1(+e.c || 0)} · F ${r1(+e.f || 0)}`;
-      name.appendChild(sub);
-      const k = document.createElement("span"); k.className = "num"; k.textContent = Math.round(e.kcal);
-      const del = document.createElement("button"); del.textContent = "×"; del.setAttribute("aria-label", `刪除 ${e.name}`);
-      del.onclick = () => {
-        const dd = day(current);
-        commitDay(current, { ...dd, entries: dd.entries.filter(x => x.id !== e.id) });
-        toast(`已刪除「${e.name}」`);
-      };
-      li.append(name, k, del); ul.appendChild(li);
+      const b = document.createElement("button"); b.className = "item";
+      if (e.photo) {
+        const img = document.createElement("img"); img.className = "thumb"; img.alt = "";
+        photoURL(e.photo).then(u => { if (u) img.src = u; });
+        b.appendChild(img);
+      }
+      const n = document.createElement("span"); n.className = "n"; n.textContent = e.name;
+      const s = document.createElement("small"); s.className = "num";
+      s.textContent = `${e.serving && e.serving !== 1 ? e.serving + " 份 · " : ""}P ${r1(+e.p || 0)} · C ${r1(+e.c || 0)} · F ${r1(+e.f || 0)}`;
+      n.appendChild(s);
+      const k = document.createElement("span"); k.className = "k num"; k.textContent = fmt(e.kcal);
+      b.append(n, k); b.onclick = () => openEntry({ entry: e });
+      li.appendChild(b); ul.appendChild(li);
     }
-    card.appendChild(ul); box.appendChild(card);
+    sec.appendChild(ul); box.appendChild(sec);
   }
 }
 
-function renderTrend() {
-  const g = state.goals, W = 560, H = 200, pad = 30, keys = [];
-  for (let i = 6; i >= 0; i--) keys.push(shift(current, -i));
-  const tots = keys.map(totals), vals = tots.map(t => t.kcal);
-  const max = Math.max(g.kcal * 1.25, ...vals, 1);
-  const bw = (W - pad * 2) / 7, y = v => H - pad - (v / max) * (H - pad * 2);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="最近 7 天每日熱量">`;
-  s += `<line x1="${pad}" x2="${W - pad}" y1="${y(g.kcal)}" y2="${y(g.kcal)}" stroke="var(--muted)" stroke-dasharray="4 4" stroke-width="1"/>`;
-  s += `<text x="${W - pad}" y="${y(g.kcal) - 5}" text-anchor="end">目標 ${g.kcal}</text>`;
-  keys.forEach((k, i) => {
-    const v = vals[i], x = pad + i * bw + bw * 0.22, w = bw * 0.56;
-    const fill = v > g.kcal ? "var(--over)" : k === current ? "var(--accent)" : "var(--line)";
-    if (v > 0) s += `<rect x="${x}" y="${y(v)}" width="${w}" height="${H - pad - y(v)}" rx="5" fill="${fill}"/><text x="${x + w / 2}" y="${y(v) - 5}" text-anchor="middle">${Math.round(v)}</text>`;
-    s += `<text x="${x + w / 2}" y="${H - 5}" text-anchor="middle"${k === current ? ' style="fill:var(--fg);font-weight:700"' : ""}>${+k.slice(5, 7)}/${+k.slice(8)}</text>`;
+function copyMeal(meal, list) {
+  const d = day(current);
+  const copies = list.map(e => ({ ...e, id: uid(), photo: null, at: Date.now() }));
+  setDay(current, { ...d, entries: [...d.entries, ...copies] }); save(); render();
+  toast(`已複製昨天的${meal}（${copies.length} 筆）`, () => {
+    const dd = day(current); setDay(current, { ...dd, entries: dd.entries.filter(e => !copies.some(c => c.id === e.id)) }); save(); render();
   });
-  $("week").innerHTML = s + "</svg>";
+}
+
+function renderTrend() {
+  const g = state.goals;
+  // 熱量 7 天
+  const keys = []; for (let i = 6; i >= 0; i--) keys.push(shift(current, -i));
+  const tots = keys.map(totals), vals = tots.map(t => t.kcal);
+  const W = 600, H = 220, padT = 28, padB = 30, max = Math.max(g.kcal * 1.2, ...vals, 1);
+  const bw = W / 7, y = v => H - padB - v / max * (H - padT - padB);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="最近 7 天每日熱量">`;
+  s += `<line x1="0" x2="${W}" y1="${y(g.kcal)}" y2="${y(g.kcal)}" stroke="var(--muted)" stroke-dasharray="3 5" stroke-width="1.5"/>`;
+  s += `<text x="${W}" y="${y(g.kcal) - 8}" text-anchor="end">目標 ${fmt(g.kcal)}</text>`;
+  keys.forEach((k, i) => {
+    const v = vals[i], x = i * bw + bw * 0.25, w = bw * 0.5, sel = k === current;
+    const fill = v > g.kcal ? "var(--over)" : sel ? "var(--fg)" : "var(--muted)";
+    if (v > 0) s += `<rect x="${x}" y="${y(v)}" width="${w}" height="${H - padB - y(v)}" rx="6" fill="${fill}" opacity="${sel || v > g.kcal ? 1 : .45}"/>`;
+    if (v > 0 && sel) s += `<text x="${x + w / 2}" y="${y(v) - 8}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${fmt(v)}</text>`;
+    s += `<text x="${x + w / 2}" y="${H - 6}" text-anchor="middle"${sel ? ' style="fill:var(--fg);font-weight:600"' : ""}>${"日一二三四五六"[new Date(k + "T12:00:00").getDay()]}</text>`;
+  });
+  $("kcalChart").innerHTML = s + "</svg>";
 
   const logged = tots.filter(t => t.kcal > 0);
-  $("avgK").textContent = logged.length ? Math.round(logged.reduce((a, t) => a + t.kcal, 0) / logged.length) : "–";
+  $("avgK").textContent = logged.length ? fmt(logged.reduce((a, t) => a + t.kcal, 0) / logged.length) : "–";
   $("avgP").textContent = logged.length ? Math.round(logged.reduce((a, t) => a + t.p, 0) / logged.length) : "–";
   let streak = 0, k = todayKey();
   if (!day(k).entries.length) k = shift(k, -1);
   while (day(k).entries.length) { streak++; k = shift(k, -1); }
   $("streak").textContent = streak;
 
+  // 體重 30 天
+  const pts = []; for (let i = 29; i >= 0; i--) { const kk = shift(current, -i); if (state.weights[kk] != null) pts.push([29 - i, +state.weights[kk], kk]); }
+  if (pts.length < 2) {
+    $("weightChart").innerHTML = `<div class="empty">${pts.length ? "再記一天體重就會畫出曲線" : "在「今天」頁輸入體重，這裡會畫出 30 天曲線"}</div>`;
+    $("wDelta").textContent = "";
+  } else {
+    const ws = pts.map(p => p[1]), lo = Math.floor(Math.min(...ws) - 0.5), hi = Math.ceil(Math.max(...ws) + 0.5);
+    const WW = 600, HH = 200, pl = 8, pr = 64, pt = 16, pb = 30;
+    const X = i => pl + i / 29 * (WW - pl - pr), Y = v => pt + (hi - v) / (hi - lo) * (HH - pt - pb);
+    let w = `<svg viewBox="0 0 ${WW} ${HH}" role="img" aria-label="最近 30 天體重">`;
+    for (const v of [lo, (lo + hi) / 2, hi]) w += `<line x1="${pl}" x2="${WW - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${WW - pr + 8}" y="${Y(v) + 6}">${r1(v)}</text>`;
+    w += `<polyline points="${pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" ")}" fill="none" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach((p, i) => w += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="${i === pts.length - 1 ? 6 : 3.5}" fill="${i === pts.length - 1 ? "var(--fg)" : "var(--surface)"}" stroke="var(--fg)" stroke-width="2"/>`);
+    w += `<text x="${pl}" y="${HH - 6}">${md(shift(current, -29))}</text><text x="${WW - pr}" y="${HH - 6}" text-anchor="end">${md(current)}</text>`;
+    $("weightChart").innerHTML = w + "</svg>";
+    const delta = r1(ws[ws.length - 1] - ws[0]);
+    $("wDelta").textContent = `${ws[ws.length - 1]} kg（${delta > 0 ? "+" : ""}${delta}）`;
+  }
+
   const top = [...history().values()].sort((a, b) => b.count - a.count).slice(0, 8);
-  $("toplist").innerHTML = "";
-  if (!top.length) $("toplist").innerHTML = `<li class="note">記錄幾天後，這裡會列出你最常吃的食物。</li>`;
+  $("toplist").innerHTML = top.length ? "" : `<li class="h">記錄幾天後，這裡會列出你最常吃的食物。</li>`;
   top.forEach(f => {
-    const li = document.createElement("li");
-    const n = document.createElement("span"); n.textContent = f.name;
-    const c = document.createElement("span"); c.className = "cnt num"; c.textContent = `${f.count} 次 · ${Math.round(f.kcal)} kcal`;
-    li.append(n, c); $("toplist").appendChild(li);
+    const li = document.createElement("li"); li.className = "it";
+    const n = document.createElement("span"); n.className = "pick"; n.textContent = f.name;
+    const sm = document.createElement("small"); sm.className = "num"; sm.textContent = `${f.count} 次 · ${fmt(f.kcal)} kcal`;
+    n.appendChild(sm); li.appendChild(n); $("toplist").appendChild(li);
   });
 }
 
 function renderSettings() {
   for (const [k, id] of [["kcal", "gKcal"], ["p", "gP"], ["c", "gC"], ["f", "gF"]])
     if (document.activeElement !== $(id)) $(id).value = state.goals[k];
+  const ul = $("libList"); ul.innerHTML = "";
+  if (!state.library.length) ul.innerHTML = `<li class="h">還沒有。點右上「新增」，或在新增紀錄時點食物旁的 ＋。</li>`;
+  [...state.library].sort((a, b) => a.name.localeCompare(b.name, "zh-Hant")).forEach(f => {
+    const li = document.createElement("li"); li.className = "it";
+    const b = document.createElement("button"); b.type = "button"; b.className = "pick"; b.textContent = f.name;
+    const sm = document.createElement("small"); sm.className = "num"; sm.textContent = `${fmt(f.kcal)} kcal · P ${r1(f.p)} C ${r1(f.c)} F ${r1(f.f)}`;
+    b.appendChild(sm); b.onclick = () => openFood(f);
+    const chev = document.createElement("span"); chev.className = "chev"; chev.style.padding = "0 16px"; chev.textContent = "›";
+    li.append(b, chev); ul.appendChild(li);
+  });
   const n = Object.values(state.days).reduce((a, d) => a + d.entries.length, 0);
-  $("statsNote").textContent = `目前共 ${Object.keys(state.days).length} 天、${n} 筆紀錄。`;
+  $("statsNote").textContent = `目前共 ${Object.keys(state.days).length} 天、${n} 筆紀錄、${Object.keys(state.weights).length} 筆體重。`;
 }
 
-/* ---------- add sheet ---------- */
-function openSheet(meal) {
-  selMeal = meal || guessMeal(); serving = 1; base = null;
-  $("addForm").reset(); $("q").value = "";
+/* ---------- 新增 / 編輯紀錄 ---------- */
+let form = null;   // { entry?, meal, serving, base, photo, photoBlob, photoChanged }
+
+function openEntry({ meal, entry } = {}) {
+  const e = entry;
+  form = {
+    entry: e, meal: e?.meal || meal || guessMeal(), serving: e?.serving || 1,
+    base: e ? macros(e.base || { kcal: e.kcal / (e.serving || 1), p: e.p / (e.serving || 1), c: e.c / (e.serving || 1), f: e.f / (e.serving || 1) }) : null,
+    photo: e?.photo || null, photoBlob: null, photoChanged: false,
+  };
+  $("entryForm").reset();
+  $("sheetTitle").textContent = e ? "編輯" : "新增";
+  $("q").value = e?.name || "";
+  $("fDate").value = current; $("fDate").max = todayKey();
+  $("dateRow").hidden = !e; $("delBox").hidden = !e;
+  if (e) fillNumbers(macros(e));
+  setPreview(null);
+  if (form.photo) photoURL(form.photo).then(setPreview);
   renderSheet();
   $("sheet").showModal();
+  if (!e) setTimeout(() => $("q").focus(), 50);
 }
 function renderSheet() {
-  $("mealChips").innerHTML = "";
+  $("mealSeg").innerHTML = "";
   for (const m of MEALS) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = m;
-    b.setAttribute("aria-pressed", m === selMeal);
-    b.onclick = () => { selMeal = m; renderSheet(); };
-    $("mealChips").appendChild(b);
+    const b = document.createElement("button"); b.type = "button"; b.textContent = m;
+    b.setAttribute("aria-pressed", m === form.meal);
+    b.onclick = () => { form.meal = m; renderSheet(); };
+    $("mealSeg").appendChild(b);
   }
-  $("servChips").innerHTML = "";
+  $("servSeg").innerHTML = "";
   for (const s of SERVINGS) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "chip num"; b.textContent = `${s}×`;
-    b.setAttribute("aria-pressed", s === serving);
-    b.onclick = () => { serving = s; if (base) fill(base); renderSheet(); };
-    $("servChips").appendChild(b);
+    const b = document.createElement("button"); b.type = "button"; b.className = "num"; b.textContent = `${s}`;
+    b.setAttribute("aria-pressed", s === form.serving);
+    b.onclick = () => {
+      if (!form.base) form.base = currentBase();
+      form.serving = s; fillNumbers(scaled(form.base, s)); renderSheet();
+    };
+    $("servSeg").appendChild(b);
   }
   renderSugg();
 }
-function renderSugg() {
-  const q = $("q").value.trim().toLowerCase();
-  const ul = $("sugg"); ul.innerHTML = "";
-  const h = history();
-  const section = (title, items) => {
-    if (!items.length) return;
-    const s = document.createElement("li"); s.className = "sec"; s.textContent = title; ul.appendChild(s);
-    items.forEach(f => {
-      const li = document.createElement("li");
-      const pick = document.createElement("button"); pick.type = "button"; pick.className = "pick";
-      pick.textContent = f.name;
-      const sm = document.createElement("small"); sm.className = "num";
-      sm.textContent = `${Math.round(f.kcal)} kcal · P ${r1(f.p)} C ${r1(f.c)} F ${r1(f.f)}${f.count ? ` · 吃過 ${f.count} 次` : ""}`;
-      pick.appendChild(sm);
-      pick.onclick = () => { base = f; $("q").value = f.name; fill(f); };
-      const star = document.createElement("button"); star.type = "button"; star.className = "star";
-      const on = state.favorites.includes(f.name);
-      star.textContent = on ? "★" : "☆"; star.setAttribute("aria-pressed", on);
-      star.setAttribute("aria-label", on ? `取消常用 ${f.name}` : `設為常用 ${f.name}`);
-      star.onclick = () => {
-        state.favorites = on ? state.favorites.filter(n => n !== f.name) : [...state.favorites, f.name];
-        save(); renderSugg();
-      };
-      li.append(pick, star); ul.appendChild(li);
-    });
-  };
-  if (!q) {
-    section("常用", frequent());
-    if (!frequent().length) section("常見食物", FOODS.slice(0, 10));
-  } else {
-    const mine = [...h.values()].filter(f => f.name.toLowerCase().includes(q)).sort((a, b) => b.count - a.count);
-    const table = FOODS.filter(f => f.name.toLowerCase().includes(q) && !h.has(f.name));
-    section("吃過的", mine.slice(0, 8));
-    section("常見食物", table.slice(0, 8));
-  }
-  ul.hidden = !ul.children.length;
+const scaled = (b, s) => ({ kcal: b.kcal * s, p: b.p * s, c: b.c * s, f: b.f * s });
+function currentBase() {
+  const s = form.serving || 1;
+  return { kcal: (+$("fKcal").value || 0) / s, p: (+$("fP").value || 0) / s, c: (+$("fC").value || 0) / s, f: (+$("fF").value || 0) / s };
 }
-function fill(f) {
-  const m = serving;
-  $("fKcal").value = Math.round(f.kcal * m);
-  $("fP").value = r1(f.p * m); $("fC").value = r1(f.c * m); $("fF").value = r1(f.f * m);
+function fillNumbers(m) {
+  $("fKcal").value = Math.round(m.kcal);
+  $("fP").value = r1(m.p); $("fC").value = r1(m.c); $("fF").value = r1(m.f);
+}
+function inLibrary(name) { return state.library.find(f => f.name === name); }
+
+function renderSugg() {
+  const q = $("q").value.trim().toLowerCase(), ul = $("sugg"); ul.innerHTML = "";
+  const exact = form.entry && q === form.entry.name.toLowerCase();
+  const h = history();
+  const add = (title, items) => {
+    if (!items.length) return;
+    const t = document.createElement("li"); t.className = "h"; t.textContent = title; ul.appendChild(t);
+    for (const f of items) {
+      const li = document.createElement("li"); li.className = "it";
+      const pick = document.createElement("button"); pick.type = "button"; pick.className = "pick"; pick.textContent = f.name;
+      const sm = document.createElement("small"); sm.className = "num";
+      sm.textContent = `${fmt(f.kcal)} kcal · P ${r1(f.p)} C ${r1(f.c)} F ${r1(f.f)}${f.count ? ` · ${f.count} 次` : ""}`;
+      pick.appendChild(sm);
+      pick.onclick = () => { $("q").value = f.name; form.base = macros(f); fillNumbers(scaled(form.base, form.serving)); renderSugg(); };
+      const mine = !!inLibrary(f.name);
+      const sv = document.createElement("button"); sv.type = "button"; sv.className = "save";
+      sv.textContent = mine ? "✓" : "＋"; sv.setAttribute("aria-pressed", mine);
+      sv.setAttribute("aria-label", mine ? `${f.name} 已在我的食物` : `把 ${f.name} 存到我的食物`);
+      sv.onclick = () => {
+        if (mine) { openFood(inLibrary(f.name), true); return; }
+        state.library.push({ id: uid(), name: f.name, ...macros(f) }); save(); renderSugg(); toast(`已存到我的食物`);
+      };
+      li.append(pick, sv); ul.appendChild(li);
+    }
+  };
+  if (exact) { /* 編輯中且名稱沒變：不顯示建議 */ }
+  else if (!q) add("常用", frequent().length ? frequent() : FOODS.slice(0, 8));
+  else {
+    const lib = state.library.filter(f => f.name.toLowerCase().includes(q)).map(f => ({ ...f, count: h.get(f.name)?.count || 0 }));
+    const libNames = new Set(lib.map(f => f.name));
+    const past = [...h.values()].filter(f => f.name.toLowerCase().includes(q) && !libNames.has(f.name)).sort((a, b) => b.count - a.count);
+    const seen = new Set([...libNames, ...past.map(f => f.name)]);
+    add("我的食物", lib.slice(0, 8));
+    add("吃過的", past.slice(0, 6));
+    add("常見食物", FOODS.filter(f => f.name.toLowerCase().includes(q) && !seen.has(f.name)).slice(0, 6));
+  }
+  $("suggBox").hidden = !ul.children.length;
 }
 
-$("q").addEventListener("input", () => { base = null; renderSugg(); });
-$("closeSheet").onclick = () => $("sheet").close();
+function setPreview(url) { $("photoPrev").hidden = !url; if (url) $("photoPrev").src = url; $("photoRm").hidden = !url; }
+async function onPhoto(input) {
+  const file = input.files[0]; input.value = ""; if (!file) return;
+  form.photoBlob = await shrink(file); form.photoChanged = true;
+  setPreview(URL.createObjectURL(form.photoBlob));
+}
+$("photoCam").onchange = e => onPhoto(e.target);
+$("photoPick").onchange = e => onPhoto(e.target);
+$("photoRm").onclick = () => { form.photoBlob = null; form.photoChanged = true; setPreview(null); };
+
+$("q").addEventListener("input", () => { form.base = null; renderSugg(); });
+for (const id of ["fKcal", "fP", "fC", "fF"]) $(id).addEventListener("input", () => { form.base = null; });
+$("cancelEntry").onclick = () => $("sheet").close();
 $("sheet").addEventListener("click", e => { if (e.target === $("sheet")) $("sheet").close(); });
-$("addForm").addEventListener("submit", ev => {
+
+$("entryForm").addEventListener("submit", async ev => {
   ev.preventDefault();
-  let name = $("q").value.trim();
+  const name = $("q").value.trim();
   if (!name) { toast("先輸入食物名稱"); $("q").focus(); return; }
-  if (base && serving !== 1 && name === base.name) name = `${name} ×${serving}`;
-  const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), meal: selMeal, name,
-    kcal: +$("fKcal").value || 0, p: +$("fP").value || 0, c: +$("fC").value || 0, f: +$("fF").value || 0, at: Date.now() };
-  const d = day(current);
-  commitDay(current, { ...d, entries: [...d.entries, e] });
-  $("sheet").close();
-  toast(`已加入「${name}」到${selMeal}`);
+  const old = form.entry, id = old?.id || uid();
+  const vals = { kcal: +$("fKcal").value || 0, p: +$("fP").value || 0, c: +$("fC").value || 0, f: +$("fF").value || 0 };
+  let photo = form.photo;
+  if (form.photoChanged) {
+    if (photo) { await delPhoto(photo).catch(() => {}); dropURL(photo); photo = null; }
+    if (form.photoBlob) { photo = id + "-" + Date.now().toString(36); await putPhoto(photo, form.photoBlob).catch(() => { photo = null; toast("照片沒有存成功"); }); }
+  }
+  const e = { ...(old || {}), id, meal: form.meal, name, ...vals, serving: form.serving, base: form.base || currentBase(), photo, at: old?.at || Date.now() };
+  const target = old ? $("fDate").value || current : current;
+  if (old) { const d = day(current); setDay(current, { ...d, entries: d.entries.filter(x => x.id !== id) }); }
+  const d = day(target); setDay(target, { ...d, entries: [...d.entries, e] });
+  save(); $("sheet").close(); render();
+  toast(old ? (target !== current ? `已移到 ${md(target)}` : "已更新") : `已加入${form.meal}`);
 });
 
-/* ---------- nav, goals, backup ---------- */
+$("delEntry").onclick = () => {
+  const e = form.entry, d = day(current);
+  setDay(current, { ...d, entries: d.entries.filter(x => x.id !== e.id) }); save();
+  $("sheet").close(); render();
+  // 照片延後刪除，讓「復原」可以把整筆帶回來
+  const timer = setTimeout(() => { if (e.photo) { delPhoto(e.photo).catch(() => {}); dropURL(e.photo); } }, 6000);
+  toast(`已刪除「${e.name}」`, () => { clearTimeout(timer); const dd = day(current); setDay(current, { ...dd, entries: [...dd.entries, e] }); save(); render(); });
+};
+
+/* ---------- 我的食物 ---------- */
+let editingFood = null, foodFromEntry = false;
+function openFood(f, fromEntry = false) {
+  editingFood = f || null; foodFromEntry = fromEntry;
+  $("foodForm").reset();
+  $("foodTitle").textContent = f ? "編輯食物" : "新增食物";
+  $("delFood").hidden = !f;
+  if (f) { $("lName").value = f.name; $("lKcal").value = Math.round(f.kcal); $("lP").value = r1(f.p); $("lC").value = r1(f.c); $("lF").value = r1(f.f); }
+  $("foodSheet").showModal();
+}
+$("newFood").onclick = () => openFood(null);
+$("cancelFood").onclick = () => $("foodSheet").close();
+$("foodSheet").addEventListener("click", e => { if (e.target === $("foodSheet")) $("foodSheet").close(); });
+$("foodSheet").addEventListener("close", () => { if (foodFromEntry && $("sheet").open) renderSugg(); });
+$("foodForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const name = $("lName").value.trim(); if (!name) return;
+  const dup = state.library.find(f => f.name === name && f !== editingFood);
+  if (dup) { toast("已經有同名的食物了"); return; }
+  const vals = { name, kcal: +$("lKcal").value || 0, p: +$("lP").value || 0, c: +$("lC").value || 0, f: +$("lF").value || 0 };
+  if (editingFood) Object.assign(editingFood, vals); else state.library.push({ id: uid(), ...vals });
+  save(); $("foodSheet").close(); render(); toast(editingFood ? "已更新" : "已加入我的食物");
+});
+$("delFood").onclick = () => {
+  const f = editingFood; state.library = state.library.filter(x => x !== f); save();
+  $("foodSheet").close(); render();
+  toast(`已移除「${f.name}」`, () => { state.library.push(f); save(); render(); });
+};
+
+/* ---------- 導覽、目標、體重、備份 ---------- */
 $("prev").onclick = () => { current = shift(current, -1); render(); };
 $("next").onclick = () => { if (current < todayKey()) { current = shift(current, 1); render(); } };
-$("fab").onclick = () => openSheet();
+$("fab").onclick = () => openEntry();
 document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => { view = b.dataset.view; render(); window.scrollTo(0, 0); });
 for (const [k, id] of [["kcal", "gKcal"], ["p", "gP"], ["c", "gC"], ["f", "gF"]])
   $(id).addEventListener("change", () => { const v = +$(id).value; if (v > 0) { state.goals[k] = v; save(); toast("目標已更新"); } render(); });
+$("weightIn").addEventListener("change", () => {
+  const v = parseFloat($("weightIn").value);
+  if (v >= 20 && v <= 300) state.weights[current] = r1(v); else delete state.weights[current];
+  save(); $("weightIn").blur(); render();
+});
 
 $("exportBtn").onclick = async () => {
-  const blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" });
+  toast("準備備份檔…");
+  const photos = {};
+  for (const e of Object.values(state.days).flatMap(d => d.entries)) {
+    if (!e.photo) continue;
+    const blob = await getPhoto(e.photo).catch(() => null);
+    if (blob) photos[e.photo] = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+  }
+  const blob = new Blob([JSON.stringify({ ...state, photos })], { type: "application/json" });
   const file = new File([blob], `餐盤日記備份-${todayKey()}.json`, { type: "application/json" });
   try {
     if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "餐盤日記備份" }); return; }
@@ -553,20 +791,26 @@ $("exportBtn").onclick = async () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 };
 $("importFile").addEventListener("change", async () => {
-  const f = $("importFile").files[0]; if (!f) return;
+  const f = $("importFile").files[0]; $("importFile").value = ""; if (!f) return;
   try {
     const data = JSON.parse(await f.text());
     if (!data || typeof data.days !== "object") throw new Error();
+    for (const [id, url] of Object.entries(data.photos || {})) await putPhoto(id, await (await fetch(url)).blob()).catch(() => {});
+    const lib = [...state.library];
+    for (const x of data.library || []) if (!lib.some(y => y.name === x.name)) lib.push(x);
     // 合併：同一天以備份檔為準，其他天保留
-    state = { days: { ...state.days, ...data.days }, goals: { ...DEFAULT_GOALS, ...(data.goals || state.goals) },
-      favorites: [...new Set([...(state.favorites || []), ...(data.favorites || [])])] };
+    state = { days: { ...state.days, ...data.days }, goals: { ...DEFAULT_GOALS, ...(data.goals || state.goals) }, weights: { ...state.weights, ...(data.weights || {}) }, library: lib };
     save(); render(); toast("已匯入備份");
   } catch { toast("這個檔案不是餐盤日記的備份檔"); }
-  $("importFile").value = "";
 });
 
 let toastTimer;
-function toast(t) { $("toast").textContent = t; $("toast").hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $("toast").hidden = true, 2200); }
+function toast(msg, undo) {
+  $("toastMsg").textContent = msg; $("toast").hidden = false;
+  $("toastUndo").hidden = !undo;
+  $("toastUndo").onclick = () => { undo(); $("toast").hidden = true; };
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $("toast").hidden = true, undo ? 5000 : 2200);
+}
 
 /* 跨過午夜回到 app 時，自動跳到新的一天 */
 let lastToday = todayKey();
@@ -578,6 +822,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+save();
 render();
 </script>
 </body>

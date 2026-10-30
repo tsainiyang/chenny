@@ -1,5 +1,5 @@
 // 離線支援：網頁本身先抓網路新版，沒網路時用快取；圖示等靜態檔先用快取
-const CACHE = "plate-diary-v2";
+const CACHE = "plate-diary-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
